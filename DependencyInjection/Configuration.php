@@ -33,17 +33,40 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->scalarNode('db_driver')->cannotBeOverwritten()->isRequired()->cannotBeEmpty()->end()
-                ->scalarNode('storage_service')->defaultValue('fos_oauth_server.server_service.storage.default')->cannotBeEmpty()->end()
-                ->scalarNode('user_provider_service')->end()
-                ->scalarNode('oauth_client_class')->isRequired()->cannotBeEmpty()->end()
-                ->scalarNode('oauth_access_token_class')->isRequired()->cannotBeEmpty()->end()
-                ->scalarNode('oauth_auth_code_class')->isRequired()->cannotBeEmpty()->end()
-                ->arrayNode('oauth_options')
-                    ->useAttributeAsKey('key')
-                    ->treatNullLike(array())
-                    ->prototype('scalar')->end()
+                ->arrayNode('doctrine')
+                    ->children()
+                        ->arrayNode('classes')
+                            ->children()
+                                ->scalarNode('access_token')->defaultValue('FOS\OAuthServerBundle\Model\AccessToken')->end()
+                                ->scalarNode('authorization_code')->defaultValue('FOS\OAuthServerBundle\Model\AuthorizationCode')->end()
+                                ->scalarNode('client')->defaultValue('FOS\OAuthServerBundle\Model\Client')->end()
+                            ->end()
+                        ->end()
+                    ->end()
                 ->end()
-            ->end();
+                ->arrayNode('oauth2_options')
+                    ->children()
+                        ->arrayNode('access_ranges')
+                            ->beforeNormalization()
+                                ->ifString()
+                                ->then(function($v) { return explode(' ', $v); })
+                            ->end()
+                            ->prototype('scalar')
+                                ->validate()->always(function($v) {
+                                    if (false !== strpos($v, ' ')) {
+                                        throw new \Exception('Access Ranges MUST NOT contain spaces.');
+                                    }
+
+                                    return $v;
+                                })->end()
+                            ->end()
+                        ->end()
+                        ->scalarNode('access_token_lifetime')->defaultNull()->end()
+                        ->scalarNode('authorization_code_lifetime')->defaultValue(30)->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
 
         return $treeBuilder;
     }
