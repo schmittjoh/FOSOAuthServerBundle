@@ -3,7 +3,6 @@
 namespace FOS\FOSOAuthServerBundle\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
-
 use FOS\FOSOAuthServerBundle\Form\Model\AccessRequest;
 use JMS\DiExtraBundle\Annotation as DI;
 use JMS\SecurityExtraBundle\Annotation\PreAuthorize;
@@ -37,43 +36,33 @@ class AuthorizationServerController
     {
         $authorizationRequest = $this->authorizationServer->createAuthorizationRequestFromRequest($this->request);
 
-        if ($this->request->query->has('action')) {
+        if ($this->request->query->has('grant') || $this->request->query->has('deny')) {
             if (!$this->csrfProvider->isCsrfTokenValid('authorizationRequest', $this->request->query->get('csrf_token'))) {
                 $this->messageManager->addError(
-                /** @Desc("Your session might have timed out, or your browser might not support cookies. Please try again.") */
-                $this->translator->trans('error.invalid_csrf_token', array(), 'FOSOAuthServerBundle'), false);
+                	/** @Desc("Your session might have timed out, or your browser might not support cookies. Please try again.") */
+                    $this->translator->trans('error.invalid_csrf_token', array(), 'FOSOAuthServerBundle'), false);
             } else {
-                if ('grant' === $this->request->query->get('action')) {
-                    return $this->authorizationServer->createSuccessfulResponseForAuthRequest($request);
+                if ($this->request->query->has('grant')) {
+                    return $this->authorizationServer->createSuccessfulResponseForAuthRequest($authorizationRequest);
                 }
 
-                return $this->authorizationServer->createUnsuccessfulResponseForAuthRequest($request, 'access_denied');
+                return $this->authorizationServer->createUnsuccessfulResponseForAuthRequest($authorizationRequest, 'access_denied');
             }
         }
 
         return array(
-        	'authorizationRequest' => $authorizationRequest,
-        	'csrf_token' => $this->csrfProvider->generateCsrfToken('authorizationRequest'),
+            'authorizationRequest' => $authorizationRequest,
+            'csrfToken' => $this->csrfProvider->generateCsrfToken('authorizationRequest'),
         );
     }
 
+    /**
+     * @PreAuthorize("isFullyAuthenticated()")
+     */
     public function accessTokenAction()
     {
         $accessToken = $this->authorizationServer->createAccessTokenFromRequest($this->request);
 
-        $data = array(
-            'access_token' => $accessToken->getValue(),
-            'token_type'   => 'bearer',
-        );
-
-        if ($expiresIn = $accessToken->getExpiresIn()) {
-            $data['expires_in'] = $expiresIn;
-        }
-
-        $response = new Response(json_encode($data));
-        $response->headers->addCacheControlDirective('no-store');
-        $response->headers->set('Pragma', 'no-cache');
-
-        return $response;
+        return $this->authorizationServer->createBearerAccessTokenResponse($accessToken);
     }
 }

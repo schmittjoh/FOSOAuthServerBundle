@@ -221,28 +221,45 @@ class AuthCode extends BaseAuthCode
 
 ### Step 5: Configure your application's security.yml
 
-In order for Symfony's security component to use the FOSOAuthServerBundle, you must
-tell it to do so in the `security.yml` file. The `security.yml` file is where the
-basic configuration for the security for your application is contained.
+The following section shows you how to secure your application if you make
+use of the most common authentication code OAuth2 workflow (see section 4 of the spec).
 
-Below is a minimal example of the configuration necessary to use the FOSOAuthServerBundle
-in your application:
+We have to use two firewalls for our OAuth2 server, one firewall for the 
+authorization server, and one firewall for the resource server. The latter is
+typically your API.
 
-``` yaml
+```yaml
 # app/config/security.yml
 security:
+    providers:
+        # ...
+        oauth_client_provider: { id: fos_oauth_server.client_provider }
+
     firewalls:
+        oauth2_auth_server:
+            pattern:   ^/oauth2/
+            basic:     true
+            stateless: true
+            provider:  oauth_client_provider
+            
         api:
-            pattern:    ^/api
-            fos_oauth: true
+            pattern:    ^/api/
+            fos_oauth2: true
             stateless:  true
-
+            # anonymous: true # if you want to allow unauthenticated access to some methods of your API
+            
+        # ...
+        
     access_control:
-        # You can omit this if /api can be accessed both authenticated and anonymously
-        - { path: ^/api, roles: [IS_AUTHENTICATED_FULLY] }
-```
+        - { path: ^/oauth2/, access: "isFullyAuthenticated()", require_channel: https }
+        # ...
 
-The URLs under `/api` will use OAuth2 to authenticate users.
+jms_security:
+    expressions: true
+    method_access_control:
+        "FOS\OAuth2\AuthorizationServer::createAccessToken": "#code.getClient().getIdentifier() == token.getUsername()"
+        
+```
 
 ### Step 6: Configure FOSOAuthServerBundle
 

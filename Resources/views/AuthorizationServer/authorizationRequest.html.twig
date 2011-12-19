@@ -1,0 +1,34 @@
+{% extends "FOSOAuthServerBundle::base.html.twig" %}
+
+{% block body %}
+
+	<h1>{{ "header.access_request"|trans({"%name%": accessRequest.client.name }, "FOSOAuthServerBundle")
+                |desc("%name% is requesting the following access permissions") }}</h1>
+
+	<form action="{{ app.request.uri }}" method="get">
+		<input type="hidden" name="csrf_token" value="{{ csrfToken }}" />
+
+        <table>
+        	<thead>
+        		<tr>
+        			<th>{{ "header.scope_label"|trans({}, "FOSOAuthServerBundle")|desc("Name") }}</th>
+        			<th>{{ "header.scope_desc"|trans({}, "FOSOAuthServerBundle")|desc("Description") }}</th>
+        		</tr>
+        	</thead>
+        	<tbody>
+        	{% for scope in authorizationRequest.scopes %}
+        		<tr>
+        			<td>{{ ("text.scope_label_" ~ scope)|trans({}, "FOSOAuthServerBundle") }}</td>
+        			<td>{{ ("text.scope_desc_" ~ scope)|trans({}, "FOSOAuthServerBundle") }}</td>
+        		</tr>
+        	{% endfor %}
+        	</tbody>
+        </table>
+
+        <div class="actions">
+        	<input class="btn primary" type="submit" name="grant" value="{{ "button.grant_access"|trans({}, "FOSOAuthServerBundle")|desc("Grant Access") }}" />
+        	<input class="btn" type="submit" name="deny" value="{{ "button.deny_access"|trans({}, "FOSOAuthServerBundle")|desc("Deny Access") }}" />
+        </div>
+	</form>
+
+{% endblock %}
