@@ -13,14 +13,17 @@
     <services>
         <service id="fos_oauth_server.access_token_storage" class="%fos_oauth_server.access_token_storage.class%" public="false">
             <argument type="service" id="fos_oauth_server.object_manager" />
+            <argument>%fos_oauth_server.model.access_token.class%</argument>
         </service>
 
         <service id="fos_oauth_server.authorization_code_storage" class="%fos_oauth_server.authorization_code_storage.class%" public="false">
             <argument type="service" id="fos_oauth_server.object_manager" />
+            <argument>%fos_oauth_server.model.authorization_code.class%</argument>
         </service>
 
         <service id="fos_oauth_server.client_storage" class="%fos_oauth_server.client_storage.class%" public="false">
             <argument type="service" id="fos_oauth_server.object_manager" />
+            <argument>%fos_oauth_server.model.client.class%</argument>
         </service>
     </services>
 

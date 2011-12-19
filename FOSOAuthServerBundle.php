@@ -18,9 +18,9 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class FOSOAuthServerBundle extends Bundle
 {
-    public function __construct()
+    public function getContainerExtension()
     {
-        $this->extension = new FOSOAuthServerExtension();
+        return new FOSOAuthServerExtension();
     }
 
     public function build(ContainerBuilder $container)

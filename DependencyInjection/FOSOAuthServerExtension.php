@@ -36,33 +36,34 @@ class FOSOAuthServerExtension extends Extension
         $config = $processor->processConfiguration($configuration, $configs);
 
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
-        $loader->load('services.xml');
 
-        if (!in_array(strtolower($config['db_driver']), array('orm', 'odm'))) {
-            throw new \InvalidArgumentException(sprintf('Invalid db driver "%s".', $config['db_driver']));
+        $loader->load('oauth2.xml');
+        $this->configureOAuth2($config['oauth2'], $container);
+
+        if ('doctrine' === $config['db_driver']) {
+            $loader->load('doctrine.xml');
+            $this->configureDoctrine($config['doctrine'], $container);
         }
-        $loader->load(sprintf('%s.xml', $config['db_driver']));
-
-        if ($config['storage_service']) {
-            $container
-                ->setAlias('fos_oauth_server.server_service.storage', $config['storage_service']);
-        }
-
-        if (isset($config['user_provider_service'])) {
-            $container
-                ->getDefinition('fos_oauth_server.server_service.storage.default')
-                ->replaceArgument(3, new Reference($config['user_provider_service']))
-                ;
-        }
-
-        $container->setParameter('fos_oauth_server.model.client.class', $config['oauth_client_class']);
-        $container->setParameter('fos_oauth_server.model.access.token.class', $config['oauth_access_token_class']);
-        $container->setParameter('fos_oauth_server.model.auth.code.class', $config['oauth_auth_code_class']);
-        $container->setParameter('fos_oauth_server.server_service.options', $config['oauth_options']);
     }
 
     public function getAlias()
     {
         return 'fos_oauth_server';
+    }
+
+    private function configureOAuth2(array $config, ContainerBuilder $container)
+    {
+        $configDef = $container->getDefinition('fos_oauth_server.oauth2.configuration')
+            ->addArgument($config['access_ranges'])
+            ->addArgument($config['authorization_code_lifetime'])
+            ->addArgument($config['access_denied_lifetime'])
+        ;
+    }
+
+    private function configureDoctrine(array $config, ContainerBuilder $container)
+    {
+        foreach ($config['classes'] as $key => $class) {
+            $container->setParameter('fos_oauth_server.model.'.$key.'.class', $class);
+        }
     }
 }

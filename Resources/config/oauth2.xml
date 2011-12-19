@@ -5,10 +5,13 @@
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <parameters>
+        <parameter key="fos_oauth_server.oauth2.configuration.class">FOS\OAuth2\Configuration</parameter>
         <parameter key="fos_oauth_server.oauth2.authorization_server.class">FOS\OAuth2\AuthorizationServer</parameter>
     </parameters>
 
     <services>
+        <service id="fos_oauth_server.oauth2.configuration" class="%fos_oauth_server.oauth2.configuration.class%" public="false" />
+    
         <service id="fos_oauth_server.oauth2.authorization_server" class="fos_oauth_server.oauth2.authorization_server.class">
         </service>
     </services>
