@@ -70,7 +70,7 @@ class Configuration implements ConfigurationInterface
                             ->children()
                                 ->scalarNode('type')->defaultValue('fos_oauth_server_authorize')->end()
                                 ->scalarNode('handler')->defaultValue('fos_oauth_server.authorize.form.handler.default')->end()
-                                ->scalarNode('name')->defaultValue('fos_oauth_server_authorize_form')->cannotBeEmpty()->end()
+                                ->scalarNode('name')->defaultValue('fos_oauth_server_authorize')->cannotBeEmpty()->end()
                                 ->arrayNode('validation_groups')
                                     ->prototype('scalar')->end()
                                     ->defaultValue(array('Authorize', 'Default'))
